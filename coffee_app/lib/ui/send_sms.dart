@@ -81,23 +81,27 @@ class _SendSMSState extends State<SendSMS> {
                   child: Padding(
                     padding: EdgeInsets.only(top: 200.0),
                     child: Container(
-                      child: ListView(children: [
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         Padding(
-                          padding: EdgeInsets.only(left: 20),
-                          child: Text(
-                              "Vui lòng nhập mã OTP đã được gửi tới số điện thoại của bạn",
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  color: Colors.black)),
+                          padding: EdgeInsets.only(top: 20,left: 10),
+                          child: Center(
+                            child: Text(
+                                "Vui lòng nhập mã OTP đã được gửi tới số điện thoại của bạn",
+                                style: TextStyle(
+                                    fontSize: 25,
+                                    color: Colors.black)),
+                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              margin: EdgeInsets.only(top: 20),
+                              margin: EdgeInsets.only(top: 40),
                               decoration: BoxDecoration(
                                   border: Border.all(
-                                      width: 2.0, color: Colors.grey)),
+                                      width: 2.0, color: Colors.black54)),
                               child: Padding(
                                   padding: EdgeInsets.only(bottom: 6, left: 8),
                                   child: TextFormField(
@@ -134,35 +138,38 @@ class _SendSMSState extends State<SendSMS> {
                         ),
                         Padding(
                           padding: EdgeInsets.only(top: 80),
-                          child: Container(
-                              margin: EdgeInsets.only(left: 30, right: 30),
-                              height: MediaQuery.of(context).size.height * 0.1,
-                              child: RaisedButton(
-                                child: Text(
-                                  "Tiếp tục",
-                                  style: TextStyle(
-                                      fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.04),
-                                ),
-                                color: Color.fromRGBO(112, 170, 48, 1.0),
-                                textColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(10.0))),
-                                onPressed: () {
-                                 loginCubit.credentialWithSMS(
-                                      smsController.text.trim());
-                                },
-                              )),
+                          child: Center(
+                            child: Container(
+                              width: 250,
+                                margin: EdgeInsets.only(left: 30, right: 30),
+                                height: MediaQuery.of(context).size.height * 0.1,
+                                child: RaisedButton(
+                                  child: Text(
+                                    "Tiếp tục",
+                                    style: TextStyle(
+                                        fontSize:
+                                            MediaQuery.of(context).size.height *
+                                                0.04),
+                                  ),
+                                  color: Color.fromRGBO(112, 170, 48, 1.0),
+                                  textColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10.0))),
+                                  onPressed: () {
+                                   loginCubit.credentialWithSMS(
+                                        smsController.text.trim());
+                                  },
+                                )),
+                          ),
                         )
                       ]),
                       height: MediaQuery.of(context).size.height - 200,
                       decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Colors.white.withOpacity(0.9),
                           borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(40.0),
-                              topRight: Radius.circular(40.0))),
+                              topLeft: Radius.circular(50.0),
+                              topRight: Radius.circular(50.0))),
                     ),
                   ),
                 ))));

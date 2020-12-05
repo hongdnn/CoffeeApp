@@ -2,7 +2,6 @@ import 'package:coffee_app/repositories/authenticate_repository.dart';
 import 'package:cubit/cubit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
@@ -37,10 +36,22 @@ class LoginCubit extends Cubit<LoginState> {
     var result = await authRepository.logInWithGoogle();
     if (result != null) {
       emit(LoginSuccess(user: result));
+    } else {
+      emit(LoginFailure());
+      print("login failed");
+    }
+  }
+
+  void loginByFacebook() async{
+    emit(LoginInProgress());
+    var result = await authRepository.logInWithFacebook();
+    if (result != null) {
+      emit(LoginSuccess(user: result));
       print(result.providerData[result.providerData.length-1].providerId);
     } else {
       emit(LoginFailure());
-      print("failed");
     }
   }
+
+  
 }
