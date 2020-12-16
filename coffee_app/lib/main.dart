@@ -1,4 +1,6 @@
+import 'package:coffee_app/ui/home.dart';
 import 'package:coffee_app/ui/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +19,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+final currentUser = FirebaseAuth.instance.currentUser;
+
   @override
   void initState() {
     super.initState();
@@ -30,11 +34,11 @@ class _MyAppState extends State<MyApp> {
         title: 'CoffeeLand',
         theme: ThemeData.light(),
         home: 
+        currentUser == null ? LoginScreen() : HomePage()
         // CubitProvider(
         //   create: (context) =>
         //       LoginCubit(authRepository: AuthenticateRepository()),
-        //   child: 
-          LoginScreen(),
+        //   child:        
         //)
         // SplashScreen(
         //     navigateAfterSeconds: LoginScreen(),

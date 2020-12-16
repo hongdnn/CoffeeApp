@@ -1,63 +1,55 @@
-import 'package:coffee_app/repositories/authenticate_repository.dart';
-import 'package:coffee_app/ui/login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:coffee_app/ui/profile.dart';
 import 'package:flutter/material.dart';
+import 'menu.dart';
+import 'news_feed.dart';
 
-class HomePage extends StatelessWidget {
-  final currentUser = FirebaseAuth.instance.currentUser;
-  final repo = AuthenticateRepository();
+class HomePage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    //var loginCubit = new LoginCubit(authRepository: AuthenticateRepository());
-    return Scaffold(
-      body: Container(
-        child: currentUser != null
-            ? Row(
-                children: [
-                  Text(
-                    currentUser.displayName,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  RaisedButton(
-                    child: Text("Log out"),
-                    onPressed: () {
-                      repo.logOut();
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> LoginScreen()));
-                    },
-                  )
-                ],
-              )
-            : Text("aaa"),
-        decoration: BoxDecoration(
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
+  _HomePageState createState() => _HomePageState();
 }
 
-// class HomePage extends StatefulWidget {
-//   @override
-//   _HomePageState createState() => _HomePageState();
-// }
+class _HomePageState extends State<HomePage> {
+  int currentIndex = 0;
+  //ListData listData;
+  final List<Widget> _pageWidgets = <Widget>[
+    NewsFeedPage(),
+    MenuPage(),
+    ProfilePage(),
+  ];
 
-// class _HomePageState extends State<HomePage> {
-//   String username = FirebaseAuth.instance.currentUser.displayName;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(index: currentIndex, children: _pageWidgets),
+      bottomNavigationBar: BottomNavigationBar(
+       onTap: onTabTapped, 
+       currentIndex: currentIndex,
+       items: [
+         new BottomNavigationBarItem(
+           icon: Icon(Icons.home),
+           label: 'Home',
+         ),
+         new BottomNavigationBarItem(
+           icon: Icon(Icons.menu),
+           label: 'Menu',
+         ),
+         new BottomNavigationBarItem(
+           icon: Icon(Icons.person),
+           label: 'Profile',
+         )
+       ],
+     ),
+    );
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Container(
-//         child: username != null
-//             ? Text(
-//                 username,
-//                 style: TextStyle(fontSize: 25),
-//               )
-//             : Text("aaa"),
-//         decoration: BoxDecoration(
-//           color: Colors.white,
-//         ),
-//       ),
-//     );
-//   }
-// }
+  void onTabTapped(int index) {
+   setState(() {
+     currentIndex = index;
+   });
+ }
+}
+
+
+
+
+

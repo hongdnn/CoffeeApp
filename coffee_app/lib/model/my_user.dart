@@ -1,4 +1,4 @@
-class User{
+class MyUser{
   String userId;
   String fullname;
   String email;
@@ -8,7 +8,7 @@ class User{
   String image;
   String createDate;
 
-  User({
+  MyUser({
     this.userId,
     this.fullname,
     this.email,
