@@ -30,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (state is LoginSuccess) {
               User user = state.user;
               if (user.displayName != null) {
+                AuthenticateRepository().insertNewUser();
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => HomePage()));
               } else {

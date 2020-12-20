@@ -1,3 +1,4 @@
+import 'package:badges/badges.dart';
 import 'package:coffee_app/model/list_data.dart';
 import 'package:coffee_app/model/product.dart';
 import 'package:coffee_app/model/size.dart';
@@ -170,7 +171,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         alignment: Alignment.topCenter,
         child: Container(
           alignment: Alignment.bottomCenter,
-          height: 70,
+          height: 72,
           child: Row(
             children: [
               Padding(
@@ -214,11 +215,16 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               ),
               Spacer(),
               Padding(
-                padding: EdgeInsets.only(right: 15.0),
-                child: Image.asset(
-                  "assets/shopping_cart.png",
-                  width: 35,
-                ),
+                padding: EdgeInsets.only(right: 25.0,bottom: 1),
+                child:  Badge(
+                        badgeContent: Text("1"),
+                        showBadge: false,
+                        alignment: Alignment.topRight,
+                                              child: Image.asset(
+                          "assets/shopping_cart2.png",
+                          width: 35,
+                        ),
+                      ),
               )
               // RaisedButton(
               //   child: Text("Log out"),

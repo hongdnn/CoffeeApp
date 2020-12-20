@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:coffee_app/model/response_result.dart';
+import 'package:dio/adapter.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class AuthenticateRepository {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -74,7 +79,7 @@ class AuthenticateRepository {
             .signInWithCredential(credential)
             .then((result) => {user = result.user});
         return user;
-      } on Exception catch(e){
+      } on Exception catch (e) {
         print(e.toString());
         return null;
       }
@@ -102,6 +107,38 @@ class AuthenticateRepository {
     return facebookLoginResult;
   }
 
+  Future<String> insertNewUser() async {
+    Dio dio = new Dio();
+    var identifier;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user.providerData[user.providerData.length - 1].providerId == 'phone') {
+      identifier = user.phoneNumber;
+    } else {
+      identifier = user.email;
+    }
+    try {
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (HttpClient client) {
+        client.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+        return client;
+      };
+      final Response response =
+          await dio.post('https://10.0.2.2:5001/api/users', data: {
+        'userId': user.uid,
+        'fullname': user.displayName,
+        'identifier': identifier,
+        'providerId':
+            user.providerData[user.providerData.length - 1].providerId,
+        'image': user.photoURL,
+      });
+      return ResponseResult.fromJson(json.decode(response.data)).accessToken;
+    } on DioError catch (e) {
+      print(e.error);
+    }
+    return null;
+  }
+
   Future<void> logOut() async {
     try {
       if (auth
@@ -118,7 +155,7 @@ class AuthenticateRepository {
           "facebook.com") {
         await facebookLogin.logOut();
       }
-      await auth.signOut();   
+      await auth.signOut();
       user = null;
     } on Exception {
       print("logout failed");

@@ -1,3 +1,4 @@
+import 'package:coffee_app/repositories/authenticate_repository.dart';
 import 'package:coffee_app/ui/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -34,9 +35,7 @@ class _InputNameState extends State<InputName> {
                     Padding(
                       padding: EdgeInsets.only(left: 20),
                       child: Text("Vui lòng nhập tên người dùng",
-                          style: TextStyle(
-                              fontSize: 25,
-                              color: Colors.black)),
+                          style: TextStyle(fontSize: 25, color: Colors.black)),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -114,7 +113,7 @@ class _InputNameState extends State<InputName> {
 
   void navigateToNextPage() async {
     User user = FirebaseAuth.instance.currentUser;
-    await user.updateProfile(displayName: nameController.text.trim());
+    await user.updateProfile(displayName: nameController.text.trim()).whenComplete(() => AuthenticateRepository().insertNewUser());
     await user.reload();
     Navigator.pushAndRemoveUntil(context,
         MaterialPageRoute(builder: (context) => HomePage()), (route) => false);

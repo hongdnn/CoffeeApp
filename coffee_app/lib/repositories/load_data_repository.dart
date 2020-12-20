@@ -7,6 +7,7 @@ import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 
+
 class LoadDataRepository {
   Future<ListData> firstLoad() async {
     Dio dio = new Dio();
@@ -28,7 +29,7 @@ class LoadDataRepository {
   }
 
   Future<List<Coupon>> getAllCoupons() async {
-    Dio dio = new Dio();
+    Dio dio = new Dio(); 
     (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
         (HttpClient client) {
       client.badCertificateCallback =
