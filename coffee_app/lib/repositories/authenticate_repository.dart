@@ -91,7 +91,8 @@ class AuthenticateRepository {
     FacebookLoginResult facebookLoginResult = await facebookLogin.logIn(
         permissions: [
           FacebookPermission.publicProfile,
-          FacebookPermission.email
+          FacebookPermission.email,
+          FacebookPermission.userPhotos
         ]);
     switch (facebookLoginResult.status) {
       case FacebookLoginStatus.Success:
@@ -139,7 +140,7 @@ class AuthenticateRepository {
     return null;
   }
 
-  Future<void> logOut() async {
+  Future<User> logOut() async {
     try {
       if (auth
               .currentUser
@@ -155,10 +156,11 @@ class AuthenticateRepository {
           "facebook.com") {
         await facebookLogin.logOut();
       }
-      await auth.signOut();
-      user = null;
+      await auth.signOut().then((value) => user = auth.currentUser);
+      return user;
     } on Exception {
       print("logout failed");
     }
+    return auth.currentUser;
   }
 }

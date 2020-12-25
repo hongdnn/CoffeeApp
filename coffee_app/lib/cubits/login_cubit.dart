@@ -53,5 +53,12 @@ class LoginCubit extends Cubit<LoginState> {
     }
   }
 
-  
+  void logOut() async{
+    var result = await authRepository.logOut();
+    if(result != null){
+      emit(LogoutFailure(user: result));
+    }else{
+      emit(LogoutSuccess(user: result));
+    }
+  }  
 }

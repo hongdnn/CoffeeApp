@@ -20,10 +20,21 @@ class LoginSuccess extends LoginState {
 
   const LoginSuccess({@required this.user});
 }
-class LoginSuccessWithoutFeedback extends LoginState{}
 
 class LoginFailure extends LoginState {
 
   const LoginFailure();
 
+}
+
+class LogoutSuccess extends LoginState {
+  final User user;
+
+  const LogoutSuccess({@required this.user});
+}
+
+class LogoutFailure extends LoginState {
+  final User user;
+
+  const LogoutFailure({@required this.user});
 }

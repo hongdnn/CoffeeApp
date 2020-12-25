@@ -18,7 +18,6 @@ class NewsFeedPage extends StatefulWidget {
 
 class _NewsFeedPageState extends State<NewsFeedPage> {
   int currentIndex = 0;
-  final currentUser = FirebaseAuth.instance.currentUser;
   final repo = LoadDataRepository();
   final authrepo = AuthenticateRepository();
   List<Widget> imagewidgets;
@@ -36,6 +35,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    var currentUser = FirebaseAuth.instance.currentUser;
     return Scaffold(
         body: Stack(children: <Widget>[
       SingleChildScrollView(
@@ -146,10 +146,14 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                                         shrinkWrap: true,
                                         reverse: false,
                                         addAutomaticKeepAlives: true,
-                                        itemCount: snapshot.data.listProduct.length,
+                                        itemCount:
+                                            snapshot.data.listProduct.length,
                                         itemBuilder: (context, index) {
-                                          if (index < snapshot.data.listProduct.length - 3) return SizedBox();
-                                            return productWidget(snapshot.data, index);                                        
+                                          if (index <
+                                              snapshot.data.listProduct.length -
+                                                  3) return SizedBox();
+                                          return productWidget(
+                                              snapshot.data, index);
                                         },
                                       ),
                                     ),
@@ -171,22 +175,34 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
         alignment: Alignment.topCenter,
         child: Container(
           alignment: Alignment.bottomCenter,
-          height: 72,
+          height: 76,
           child: Row(
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 10.0),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: currentUser.photoURL != null
-                        ? Image.network(
-                            currentUser.photoURL,
-                            width: 40,
+                child: currentUser != null
+                    ? currentUser.photoURL != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: Image.network(
+                              currentUser.photoURL,
+                              width: 50,
+                            ),
                           )
-                        : Image.asset(
-                            "assets/user.png",
-                            width: 30,
-                          )),
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              "assets/user.png",
+                              width: 50,
+                            ),
+                          )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          "assets/user.png",
+                          width: 50,
+                        ),
+                      ),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 5.0),
@@ -195,14 +211,17 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                         currentUser.displayName,
                         style: TextStyle(fontSize: 20),
                       )
-                    : SizedBox(
-                        height: 30,
-                        width: 70,
+                    : Container(
+                        height: MediaQuery.of(context).size.height / 15,
+                        width: MediaQuery.of(context).size.width / 2.5,
                         child: FlatButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(7.0))),
                           color: Color.fromRGBO(112, 170, 48, 1.0),
                           child: Text(
                             "Đăng nhập",
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                            style: TextStyle(fontSize: 25, color: Colors.white),
                           ),
                           onPressed: () {
                             Navigator.push(
@@ -215,27 +234,17 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               ),
               Spacer(),
               Padding(
-                padding: EdgeInsets.only(right: 25.0,bottom: 1),
-                child:  Badge(
-                        badgeContent: Text("1"),
-                        showBadge: false,
-                        alignment: Alignment.topRight,
-                                              child: Image.asset(
-                          "assets/shopping_cart2.png",
-                          width: 35,
-                        ),
-                      ),
+                padding: EdgeInsets.only(right: 25.0, bottom: 1),
+                child: Badge(
+                  badgeContent: Text("1"),
+                  showBadge: false,
+                  alignment: Alignment.topRight,
+                  child: Image.asset(
+                    "assets/shopping_cart2.png",
+                    width: 35,
+                  ),
+                ),
               )
-              // RaisedButton(
-              //   child: Text("Log out"),
-              //   onPressed: () {
-              //     authrepo.logOut();
-              //     Navigator.pushReplacement(
-              //         context,
-              //         MaterialPageRoute(
-              //             builder: (context) => LoginScreen()));
-              //   },
-              // )
             ],
           ),
           decoration: BoxDecoration(
