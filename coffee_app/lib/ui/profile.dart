@@ -1,11 +1,13 @@
 import 'package:coffee_app/cubits/login_cubit.dart';
 import 'package:coffee_app/cubits/login_state.dart';
 import 'package:coffee_app/repositories/authenticate_repository.dart';
+import 'package:coffee_app/ui/update_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cubit/flutter_cubit.dart';
 import 'login_screen.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 
 class ProfilePage extends StatelessWidget {
   final authrepo = AuthenticateRepository();
@@ -47,7 +49,12 @@ class ProfileContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(50),
                   child: currentUser != null
                       ? currentUser.photoURL != null
-                          ? Image.network(
+                          ? currentUser.photoURL.contains('image_picker') ? Image.file(
+                                   File(currentUser.photoURL),
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.cover,
+                              ) : Image.network(
                               currentUser.photoURL,
                               width: 50,
                             )
@@ -102,7 +109,9 @@ class ProfileContent extends StatelessWidget {
             child: Column(
               children: [
                 InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateProfileScreen()));
+                    },
                     child: Container(
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 20.0, top: 10.0),

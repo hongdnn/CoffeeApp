@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
               if (user.displayName != null) {
                 AuthenticateRepository().insertNewUser();
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => HomePage()));
+                    MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)));
               } else {
                 Navigator.pushAndRemoveUntil(
                     context,
@@ -231,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => HomePage()),
+                                          builder: (context) => HomePage(currentIndex: 0,)),
                                       (route) => false);
                                 },
                                 child: Text(

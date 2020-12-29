@@ -10,6 +10,7 @@ import 'dart:core';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:coffee_app/model/coupon.dart';
 import 'login_screen.dart';
+import 'dart:io';
 
 class NewsFeedPage extends StatefulWidget {
   @override
@@ -180,25 +181,24 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 10.0),
-                child: currentUser != null
+                child: ClipOval(
+                    child: currentUser != null
                     ? currentUser.photoURL != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.network(
+                        ? currentUser.photoURL.contains('image_picker') ?Image.file(
+                                   File(currentUser.photoURL),
+                                height: 50,
+                                width: 50,
+                                fit: BoxFit.cover,
+                              ) : Image.network(
                               currentUser.photoURL,
                               width: 50,
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
+                            )
+                        :  Image.asset(
                               "assets/user.png",
                               width: 50,
-                            ),
+                            
                           )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
+                    :  Image.asset(
                           "assets/user.png",
                           width: 50,
                         ),

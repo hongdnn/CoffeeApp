@@ -34,4 +34,16 @@ class MyUser{
         'ProviderId': providerId,
         'Image': image,
       };
+
+  factory MyUser.fromJson(Map<dynamic, dynamic> json) {
+    return MyUser(
+      userId: json['UserId'],
+      fullname: json['Fullname'],
+      email: json['Email'],
+      phone: json['Phone'],
+      address: json['Address'],
+      providerId: json['ProviderId'],
+      image: json['Image'],
+    );
+  }
 }

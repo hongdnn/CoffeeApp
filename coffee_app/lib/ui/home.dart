@@ -4,12 +4,15 @@ import 'menu.dart';
 import 'news_feed.dart';
 
 class HomePage extends StatefulWidget {
+  int currentIndex;
+
+  HomePage({ this.currentIndex});
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int currentIndex = 0;
+  
   //ListData listData;
   final List<Widget> _pageWidgets = <Widget>[
     NewsFeedPage(),
@@ -20,10 +23,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: currentIndex, children: _pageWidgets),
+      body: IndexedStack(index: widget.currentIndex, children: _pageWidgets),
       bottomNavigationBar: BottomNavigationBar(
        onTap: onTabTapped, 
-       currentIndex: currentIndex,
+       currentIndex: widget.currentIndex,
        items: [
          new BottomNavigationBarItem(
            icon: Icon(Icons.home),
@@ -44,7 +47,7 @@ class _HomePageState extends State<HomePage> {
 
   void onTabTapped(int index) {
    setState(() {
-     currentIndex = index;
+     widget.currentIndex = index;
    });
  }
 }

@@ -133,7 +133,11 @@ class AuthenticateRepository {
             user.providerData[user.providerData.length - 1].providerId,
         'image': user.photoURL,
       });
-      return ResponseResult.fromJson(json.decode(response.data)).accessToken;
+      final responseResult =  ResponseResult.fromJson(json.decode(response.data));
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('ACCESS_TOKEN', responseResult.accessToken);
+      print('jwt: '+ prefs.getString('ACCESS_TOKEN'));
+      return responseResult.accessToken;
     } on DioError catch (e) {
       print(e.error);
     }
@@ -163,4 +167,6 @@ class AuthenticateRepository {
     }
     return auth.currentUser;
   }
+
+
 }

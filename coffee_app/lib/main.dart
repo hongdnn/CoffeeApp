@@ -34,7 +34,7 @@ final currentUser = FirebaseAuth.instance.currentUser;
         title: 'CoffeeLand',
         theme: ThemeData.light(),
         home: 
-        currentUser == null ? LoginScreen() : HomePage()
+        currentUser == null ? LoginScreen() : HomePage(currentIndex: 0,)
         // CubitProvider(
         //   create: (context) =>
         //       LoginCubit(authRepository: AuthenticateRepository()),

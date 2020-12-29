@@ -45,7 +45,7 @@ class _SendSMSState extends State<SendSMS> {
             if (user.displayName != null) {
               Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
+                  MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)),
                   (route) => false);
             } else {
               Navigator.pushAndRemoveUntil(

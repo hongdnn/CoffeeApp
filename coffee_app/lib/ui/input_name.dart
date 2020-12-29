@@ -116,6 +116,6 @@ class _InputNameState extends State<InputName> {
     await user.updateProfile(displayName: nameController.text.trim()).whenComplete(() => AuthenticateRepository().insertNewUser());
     await user.reload();
     Navigator.pushAndRemoveUntil(context,
-        MaterialPageRoute(builder: (context) => HomePage()), (route) => false);
+        MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)), (route) => false);
   }
 }
