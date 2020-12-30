@@ -5,7 +5,7 @@ import 'package:coffee_app/repositories/load_data_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coffee_app/model/list_data.dart';
-
+import 'detail_screen.dart';
 
 class MenuPage extends StatefulWidget {
   @override
@@ -36,16 +36,16 @@ class _MenuPageState extends State<MenuPage> {
                   backgroundColor: Colors.white,
                   title: Text(
                     "Các loại thức uống",
-                    style: TextStyle(fontSize: 27,color: Colors.black),
+                    style: TextStyle(fontSize: 27, color: Colors.black),
                   ),
                   actions: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.only(right: 25,top: 10),
+                      padding: const EdgeInsets.only(right: 25, top: 10),
                       child: Badge(
                         badgeContent: Text("1"),
                         showBadge: false,
                         alignment: Alignment.topRight,
-                                              child: Image.asset(
+                        child: Image.asset(
                           "assets/shopping_cart2.png",
                           width: 35,
                         ),
@@ -53,7 +53,7 @@ class _MenuPageState extends State<MenuPage> {
                     ),
                   ],
                   bottom: TabBar(
-                    labelStyle: TextStyle(fontSize: 21,color: Colors.black),
+                    labelStyle: TextStyle(fontSize: 21, color: Colors.black),
                     labelColor: Colors.black,
                     tabs: [
                       Tab(text: "Cà phê"),
@@ -84,15 +84,15 @@ class PageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Product> listProducts =  List<Product>();
-    List<Size> listSizes =  List<Size>();
-    if(listData.listProduct != null){
-    for(int i = 0;i < listData.listProduct.length;i++){
-      if(listData.listProduct[i].typeId == type){
-        listProducts.add(listData.listProduct[i]);
-        listSizes.add(listData.listSize[i]);
+    List<Product> listProducts = List<Product>();
+    List<Size> listSizes = List<Size>();
+    if (listData.listProduct != null) {
+      for (int i = 0; i < listData.listProduct.length; i++) {
+        if (listData.listProduct[i].typeId == type) {
+          listProducts.add(listData.listProduct[i]);
+          listSizes.add(listData.listSize[i]);
+        }
       }
-    }
     }
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
@@ -105,65 +105,78 @@ class PageWidget extends StatelessWidget {
           children: List.generate(
             listProducts.length,
             (index) {
-              return Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                    border: Border.all(),
-                    color: Colors.white),
-                alignment: Alignment.centerLeft,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10.0),
-                            topRight: Radius.circular(10.0)),
-                        child: Image.network(
-                          listProducts[index].image,
-                          width: MediaQuery.of(context).size.width / 2 - 30,
-                        )),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 10, bottom: 25, top: 10),
-                      child: Text(
-                        showProductName(
-                            listProducts[index].productName),
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DetailScreen(
+                                product: listProducts[index],
+                                size: listSizes[index],
+                              )));
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      border: Border.all(),
+                      color: Colors.white),
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(10.0),
+                              topRight: Radius.circular(10.0)),
+                          child: Hero(
+                            tag: listProducts[index].image,
+                            child: Image.network(
+                              listProducts[index].image,
+                              width: MediaQuery.of(context).size.width / 2 - 30,
+                            ),
+                          )),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 10, bottom: 25, top: 10),
+                        child: Text(
+                          showProductName(listProducts[index].productName),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10, bottom: 10),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              listSizes[index].priceOfSizeS != null
-                                  ? listSizes[index].priceOfSizeS
-                                      .toString()
-                                  : listSizes[index].priceOfSizeM !=
-                                          null
-                                      ? listSizes[index].priceOfSizeM
-                                          .toString()
-                                      : listSizes[index].priceOfSizeL
-                                          .toString(),
-                              style: TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.bold),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10, bottom: 10),
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                listSizes[index].priceOfSizeS != null
+                                    ? listSizes[index].priceOfSizeS.toString()
+                                    : listSizes[index].priceOfSizeM != null
+                                        ? listSizes[index]
+                                            .priceOfSizeM
+                                            .toString()
+                                        : listSizes[index]
+                                            .priceOfSizeL
+                                            .toString(),
+                                style: TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                          Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Image.asset("assets/add_to_cart.png",
-                                width: 42),
-                          )
-                        ],
+                            Spacer(),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: Image.asset("assets/add_to_cart.png",
+                                  width: 42),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

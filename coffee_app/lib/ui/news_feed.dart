@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:coffee_app/model/coupon.dart';
+import 'detail_screen.dart';
 import 'login_screen.dart';
 import 'dart:io';
 
@@ -360,7 +361,8 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => LoginScreen()));
+                                builder: (context) => DetailScreen(product:listData.listProduct[index],
+                                size: listData.listSize[index],)));
                       },
                     ),
                   )),
