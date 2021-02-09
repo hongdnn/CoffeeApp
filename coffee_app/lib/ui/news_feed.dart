@@ -1,14 +1,20 @@
 import 'package:badges/badges.dart';
+import 'package:coffee_app/common/badge_value.dart';
+import 'package:coffee_app/cubits/order_cubit.dart';
+import 'package:coffee_app/cubits/order_state.dart';
 import 'package:coffee_app/model/list_data.dart';
 import 'package:coffee_app/model/product.dart';
 import 'package:coffee_app/model/size.dart';
 import 'package:coffee_app/repositories/authenticate_repository.dart';
 import 'package:coffee_app/repositories/load_data_repository.dart';
+import 'package:coffee_app/repositories/order_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:coffee_app/model/coupon.dart';
+import 'package:flutter_cubit/flutter_cubit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'detail_screen.dart';
 import 'login_screen.dart';
 import 'dart:io';
@@ -38,8 +44,26 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   @override
   Widget build(BuildContext context) {
     var currentUser = FirebaseAuth.instance.currentUser;
-    return Scaffold(
-        body: Stack(children: <Widget>[
+    return
+        // CubitListener<OrderCubit, OrderState>(
+        //     listener: (context, state) {
+        //       if (state is OrderSuccess) {
+        //         numOfProducts += state.count;
+        //         showBadge = true;
+        //       } else if (state is OrderFailure) {
+        //         Fluttertoast.showToast(
+        //             msg: "Rất tiếc. Đã có lỗi xảy ra",
+        //             toastLength: Toast.LENGTH_LONG,
+        //             gravity: ToastGravity.BOTTOM,
+        //             timeInSecForIosWeb: 1,
+        //             backgroundColor: Colors.red,
+        //             textColor: Colors.white,
+        //             fontSize: 20);
+        //       }
+        //     },
+        //     child:
+        Scaffold(
+            body: Stack(children: <Widget>[
       SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,27 +207,28 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               Padding(
                 padding: const EdgeInsets.only(left: 10.0),
                 child: ClipOval(
-                    child: currentUser != null
-                    ? currentUser.photoURL != null
-                        ? currentUser.photoURL.contains('image_picker') ?Image.file(
-                                   File(currentUser.photoURL),
-                                height: 50,
-                                width: 50,
-                                fit: BoxFit.cover,
-                              ) : Image.network(
-                              currentUser.photoURL,
-                              width: 50,
-                            )
-                        :  Image.asset(
+                  child: currentUser != null
+                      ? currentUser.photoURL != null
+                          ? currentUser.photoURL.contains('image_picker')
+                              ? Image.file(
+                                  File(currentUser.photoURL),
+                                  height: 50,
+                                  width: 50,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  currentUser.photoURL,
+                                  width: 50,
+                                )
+                          : Image.asset(
                               "assets/user.png",
                               width: 50,
-                            
-                          )
-                    :  Image.asset(
+                            )
+                      : Image.asset(
                           "assets/user.png",
                           width: 50,
                         ),
-                      ),
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 5.0),
@@ -236,14 +261,22 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               Spacer(),
               Padding(
                 padding: EdgeInsets.only(right: 25.0, bottom: 1),
-                child: Badge(
-                  badgeContent: Text("1"),
-                  showBadge: false,
-                  alignment: Alignment.topRight,
-                  child: Image.asset(
-                    "assets/shopping_cart2.png",
-                    width: 35,
-                  ),
+                child: ValueListenableBuilder(
+                  valueListenable: BadgeValue.numProductsNotifier,
+                  builder: (context, value, _) {
+                    return Badge(
+                      badgeContent: Text(
+                        '$value',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                      showBadge: value > 0 ? true : false,
+                      alignment: Alignment.topRight,
+                      child: Image.asset(
+                        "assets/shopping_cart2.png",
+                        width: 40,
+                      ),
+                    );
+                  },
                 ),
               )
             ],
@@ -361,8 +394,10 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => DetailScreen(product:listData.listProduct[index],
-                                size: listData.listSize[index],)));
+                                builder: (context) => DetailScreen(
+                                      product: listData.listProduct[index],
+                                      size: listData.listSize[index],
+                                    )));
                       },
                     ),
                   )),

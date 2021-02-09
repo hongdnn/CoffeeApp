@@ -1,15 +1,17 @@
+import 'package:coffee_app/cubits/order_cubit.dart';
+import 'package:coffee_app/repositories/order_repository.dart';
 import 'package:coffee_app/ui/home.dart';
 import 'package:coffee_app/ui/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cubit/flutter_cubit.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
-  
 }
 
 class MyApp extends StatefulWidget {
@@ -19,37 +21,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-final currentUser = FirebaseAuth.instance.currentUser;
+  final currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
     super.initState();
-    
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return CubitProvider(
+      create: (BuildContext context) =>
+          OrderCubit(orderRepo: OrderRepository()),
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'CoffeeLand',
         theme: ThemeData.light(),
-        home: 
-        currentUser == null ? LoginScreen() : HomePage(currentIndex: 0,)
-        // CubitProvider(
-        //   create: (context) =>
-        //       LoginCubit(authRepository: AuthenticateRepository()),
-        //   child:        
-        //)
-        // SplashScreen(
-        //     navigateAfterSeconds: LoginScreen(),
-        //     seconds: 3,
-        //     routeName: "/",
-        //     image: Image.asset("assets/cfland.png"),
-        //     backgroundColor: Colors.white,
-        //     photoSize: 100.0,
-        //     loaderColor: Colors.red,
-        //     ),
-        );
+        home: currentUser == null
+            ? LoginScreen()
+            : HomePage(
+                currentIndex: 0,
+              ),
+      ),
+
+      //LoginScreen()
+      // CubitProvider(
+      //   create: (context) =>
+      //       LoginCubit(authRepository: AuthenticateRepository()),
+      //   child:
+      //)
+      // SplashScreen(
+      //     navigateAfterSeconds: LoginScreen(),
+      //     seconds: 3,
+      //     routeName: "/",
+      //     image: Image.asset("assets/cfland.png"),
+      //     backgroundColor: Colors.white,
+      //     photoSize: 100.0,
+      //     loaderColor: Colors.red,
+      //     ),
+    );
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:coffee_app/repositories/authenticate_repository.dart';
 import 'package:coffee_app/ui/home.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -113,9 +114,14 @@ class _InputNameState extends State<InputName> {
 
   void navigateToNextPage() async {
     User user = FirebaseAuth.instance.currentUser;
-    await user.updateProfile(displayName: nameController.text.trim()).whenComplete(() => AuthenticateRepository().insertNewUser());
+    await user.updateProfile(displayName: nameController.text.trim()).whenComplete(() => {
+      AuthenticateRepository().insertNewUser(user).then((result) => {
+        if(result != null){
+          Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)), (route) => false)
+        }
+      })
+    });
     await user.reload();
-    Navigator.pushAndRemoveUntil(context,
-        MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)), (route) => false);
   }
 }

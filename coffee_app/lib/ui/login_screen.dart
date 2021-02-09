@@ -10,6 +10,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'home.dart';
 import 'input_name.dart';
+import 'package:coffee_app/common/progress_dialog.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -22,23 +24,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    setUpProgressDialog(context);
+
     return CubitProvider(
       create: (BuildContext context) =>
           LoginCubit(authRepository: AuthenticateRepository()),
       child: CubitListener<LoginCubit, LoginState>(
           listener: (context, state) {
-            if (state is LoginSuccess) {
+            if (state is LoginInProgress) {
+              dialog.show();
+            } else if (state is LoginSuccess) {
               User user = state.user;
               if (user.displayName != null) {
-                AuthenticateRepository().insertNewUser();
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => HomePage(currentIndex: 0,)));
+                dialog.hide();
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomePage(
+                              currentIndex: 0,
+                            )));
               } else {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => InputName()),
                     (route) => false);
               }
+            } else if (state is LoginFailure) {
+              Fluttertoast.showToast(
+                  msg: "Đăng nhập không thành công",
+                  toastLength: Toast.LENGTH_LONG,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 20);
             }
           },
           child: Scaffold(
@@ -231,7 +250,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => HomePage(currentIndex: 0,)),
+                                          builder: (context) => HomePage(
+                                                currentIndex: 0,
+                                              )),
                                       (route) => false);
                                 },
                                 child: Text(

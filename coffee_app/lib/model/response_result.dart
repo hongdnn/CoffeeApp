@@ -1,11 +1,13 @@
 class ResponseResult {
   int status;
   String accessToken;
+  String refreshToken;
   String error;
 
   ResponseResult({
     this.status,
     this.accessToken,
+    this.refreshToken,
     this.error
 });
 
@@ -14,6 +16,7 @@ class ResponseResult {
     return ResponseResult(
       status: json['Status'],
       accessToken: json['Token'],
+      refreshToken: json['RefreshToken'],
       error: json['Error'],
     );
   }

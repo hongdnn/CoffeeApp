@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:coffee_app/model/response_result.dart';
+import 'package:coffee_app/utils/base_api.dart';
 import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -88,12 +89,12 @@ class AuthenticateRepository {
   }
 
   Future<FacebookLoginResult> handleFBSignIn() async {
-    FacebookLoginResult facebookLoginResult = await facebookLogin.logIn(
-        permissions: [
-          FacebookPermission.publicProfile,
-          FacebookPermission.email,
-          FacebookPermission.userPhotos
-        ]);
+    FacebookLoginResult facebookLoginResult =
+        await facebookLogin.logIn(permissions: [
+      FacebookPermission.publicProfile,
+      FacebookPermission.email,
+      FacebookPermission.userPhotos
+    ]);
     switch (facebookLoginResult.status) {
       case FacebookLoginStatus.Success:
         print("Success");
@@ -108,24 +109,23 @@ class AuthenticateRepository {
     return facebookLoginResult;
   }
 
-  Future<String> insertNewUser() async {
-    Dio dio = new Dio();
+  Future<String> insertNewUser(User user) async {
+    // Dio dio = new Dio();
+    var baseApi = BaseApi(true, false);
     var identifier;
-    final user = FirebaseAuth.instance.currentUser;
     if (user.providerData[user.providerData.length - 1].providerId == 'phone') {
       identifier = user.phoneNumber;
     } else {
       identifier = user.email;
     }
     try {
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (HttpClient client) {
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-        return client;
-      };
-      final Response response =
-          await dio.post('https://10.0.2.2:5001/api/users', data: {
+      // (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+      //     (HttpClient client) {
+      //   client.badCertificateCallback =
+      //       (X509Certificate cert, String host, int port) => true;
+      //   return client;
+      // };
+      final Response response = await baseApi.dio.post('/users', data: {
         'userId': user.uid,
         'fullname': user.displayName,
         'identifier': identifier,
@@ -133,10 +133,12 @@ class AuthenticateRepository {
             user.providerData[user.providerData.length - 1].providerId,
         'image': user.photoURL,
       });
-      final responseResult =  ResponseResult.fromJson(json.decode(response.data));
+      final responseResult =
+          ResponseResult.fromJson(json.decode(response.data));
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('ACCESS_TOKEN', responseResult.accessToken);
-      print('jwt: '+ prefs.getString('ACCESS_TOKEN'));
+      await prefs.setString('REFRESH_TOKEN', responseResult.refreshToken);
+      BaseApi.jwt = responseResult.accessToken;
       return responseResult.accessToken;
     } on DioError catch (e) {
       print(e.error);
@@ -167,6 +169,4 @@ class AuthenticateRepository {
     }
     return auth.currentUser;
   }
-
-
 }

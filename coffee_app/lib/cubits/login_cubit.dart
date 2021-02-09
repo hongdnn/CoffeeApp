@@ -24,41 +24,58 @@ class LoginCubit extends Cubit<LoginState> {
     var result =
         await authRepository.credentialWithSMS(verificationId, smsCode);
     if (result != null) {
-      emit(LoginSuccess(user: result));
-      print(result.providerData[result.providerData.length-1].providerId);
+      if (result.displayName == null) {
+        emit(LoginSuccess(user: result));
+      } else {
+        emit(LoginInProgress());
+        var token = await authRepository.insertNewUser(result);
+        if (token != null) {
+          emit(LoginSuccess(user: result));
+        } else {
+          emit(LoginFailure());
+        }
+      }
     } else {
       emit(LoginFailure());
     }
   }
 
-  void loginByGoogle() async{
-    emit(LoginInProgress());
+  void loginByGoogle() async {
     var result = await authRepository.logInWithGoogle();
     if (result != null) {
-      emit(LoginSuccess(user: result));
+      emit(LoginInProgress());
+      var token = await authRepository.insertNewUser(result);
+      if (token != null) {
+        emit(LoginSuccess(user: result));
+      } else {
+        emit(LoginFailure());
+      }
     } else {
       emit(LoginFailure());
-      print("login failed");
     }
   }
 
-  void loginByFacebook() async{
-    emit(LoginInProgress());
+  void loginByFacebook() async {
     var result = await authRepository.logInWithFacebook();
     if (result != null) {
-      emit(LoginSuccess(user: result));
-      print(result.providerData[result.providerData.length-1].providerId);
+      emit(LoginInProgress());
+      var token = await authRepository.insertNewUser(result);
+      if (token != null) {
+        emit(LoginSuccess(user: result));
+      } else {
+        emit(LoginFailure());
+      }
     } else {
       emit(LoginFailure());
     }
   }
 
-  void logOut() async{
+  void logOut() async {
     var result = await authRepository.logOut();
-    if(result != null){
+    if (result != null) {
       emit(LogoutFailure(user: result));
-    }else{
+    } else {
       emit(LogoutSuccess(user: result));
     }
-  }  
+  }
 }
