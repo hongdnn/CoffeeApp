@@ -11,6 +11,7 @@ import 'menu.dart';
 import 'news_feed.dart';
 import 'package:coffee_app/cubits/order_cubit.dart';
 import 'package:coffee_app/utils/base_api.dart';
+import 'package:coffee_app/repositories/order_repository.dart';
 
 class HomePage extends StatefulWidget {
   int currentIndex;
@@ -23,6 +24,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final currentUser = FirebaseAuth.instance.currentUser;
   final loadDataRepo = LoadDataRepository();
+  final orderRepo = OrderRepository();
   final List<Widget> _pageWidgets = <Widget>[
     NewsFeedPage(),
     MenuPage(),
@@ -39,15 +41,19 @@ class _HomePageState extends State<HomePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     BaseApi.jwt = prefs.getString('ACCESS_TOKEN');
     if (currentUser != null) {
-      final user = await loadDataRepo.loadUserInfo(currentUser.uid);
-      if (user != null) {
-        user.address != null
-            ? prefs.setString('ADDRESS', user.address)
-            : prefs.setString('ADDRESS', 'not yet');
-        user.phone != null
-            ? prefs.setString('PHONE', user.phone)
-            : prefs.setString('PHONE', ' not yet');
-      }
+      await loadDataRepo.loadUserInfo(currentUser.uid).then((user) => {
+            if (user != null)
+              {
+                user.address != null
+                    ? prefs.setString('ADDRESS', user.address)
+                    : prefs.setString('ADDRESS', 'not yet'),
+                user.phone != null
+                    ? prefs.setString('PHONE', user.phone)
+                    : prefs.setString('PHONE', ' not yet'),
+                 orderRepo.getOrderId(currentUser.uid),
+              }
+          });
+
       print('address: ' + prefs.getString('ADDRESS'));
       print('phone: ' + prefs.getString('PHONE'));
     }

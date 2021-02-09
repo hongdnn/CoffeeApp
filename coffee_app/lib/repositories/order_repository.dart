@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:coffee_app/utils/base_api.dart';
 import 'refresh_token_repository.dart';
+import 'package:coffee_app/common/badge_value.dart';
 
 class OrderRepository {
   var baseApi = BaseApi(true, true);
@@ -72,6 +73,34 @@ class OrderRepository {
         }
       } else {
         print('error insert order');
+      }
+    }
+    return -1;
+  }
+
+  Future<int> getOrderId(String id) async {
+    try {
+      response = await baseApi.dio.get("/orders/userid/" + id);
+      if (response.statusCode == 200) {
+        final orderResponse =
+            OrderResponse.getAmountfromJson(json.decode(response.data));
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
+        BadgeValue.numProductsNotifier.value = orderResponse.amountDetail;
+        return orderResponse.orderId;
+      }
+    } on DioError catch (e) {
+      if (e.response.statusCode == 401) {
+        String description = e.response.headers.value('WWW-Authenticate');
+        if (description != null) {
+          print(description);
+          if (description.contains('expired')) {
+            refreshToken().whenComplete(() => {getOrderId(id)});
+          }
+        }
+      } else {
+        print('error get order id');
+        return e.response.statusCode;
       }
     }
     return -1;
