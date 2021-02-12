@@ -29,14 +29,13 @@ class OrderRepository {
         if (description != null) {
           print(description);
           if (description.contains('expired')) {
-            refreshToken().whenComplete(() => {
-                  insertOrderDetail(orderId, productId, productName, size,
-                      quantity, unitPrice)
-                });
+            String jwt = await refreshToken();
+            if (jwt != null) {
+              return -2;
+            }
           }
         }
       } else {
-        print(e.response.statusCode);
         return e.response.statusCode;
       }
     }
@@ -68,7 +67,10 @@ class OrderRepository {
         if (description != null) {
           print(description);
           if (description.contains('expired')) {
-            refreshToken().whenComplete(() => {insertOrder(totalPrice)});
+            String jwt = await refreshToken();
+            if (jwt != null) {
+              return -2;
+            }
           }
         }
       } else {
@@ -78,30 +80,46 @@ class OrderRepository {
     return -1;
   }
 
-  Future<int> getOrderId(String id) async {
+  Future<Response> loadOrderId(String id) async {
     try {
       response = await baseApi.dio.get("/orders/userid/" + id);
-      if (response.statusCode == 200) {
-        final orderResponse =
-            OrderResponse.getAmountfromJson(json.decode(response.data));
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
-        BadgeValue.numProductsNotifier.value = orderResponse.amountDetail;
-        return orderResponse.orderId;
-      }
+      return response;
     } on DioError catch (e) {
-      if (e.response.statusCode == 401) {
-        String description = e.response.headers.value('WWW-Authenticate');
-        if (description != null) {
-          print(description);
-          if (description.contains('expired')) {
-            refreshToken().whenComplete(() => {getOrderId(id)});
+      return e.response;
+    }
+  }
+
+  Future<int> getOrderId(String id) async {
+    Response res = await loadOrderId(id);
+    if (res.statusCode == 200) {
+      final orderResponse =
+          OrderResponse.getAmountfromJson(json.decode(res.data));
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
+      BadgeValue.numProductsNotifier.value = orderResponse.amountDetail;
+      return orderResponse.orderId;
+    } else if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        print(description);
+        if (description.contains('expired')) {
+          String jwt = await refreshToken();
+          if (jwt != null) {
+            var result = await loadOrderId(id);
+            if (result.statusCode == 200) {
+              final orderRes =
+                  OrderResponse.getAmountfromJson(json.decode(res.data));
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              prefs.setInt('EXISTED_ORDER', orderRes.orderId);
+              BadgeValue.numProductsNotifier.value = orderRes.amountDetail;
+              return orderRes.orderId;
+            }
           }
         }
-      } else {
-        print('error get order id');
-        return e.response.statusCode;
       }
+    } else {
+      print('error get order id');
+      return res.statusCode;
     }
     return -1;
   }

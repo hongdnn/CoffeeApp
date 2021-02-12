@@ -1,15 +1,12 @@
 import 'package:badges/badges.dart';
 import 'package:coffee_app/common/badge_value.dart';
-import 'package:coffee_app/cubits/order_cubit.dart';
-import 'package:coffee_app/cubits/order_state.dart';
 import 'package:coffee_app/model/product.dart';
 import 'package:coffee_app/model/size.dart';
 import 'package:coffee_app/repositories/load_data_repository.dart';
+import 'package:coffee_app/ui/shopping_cart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coffee_app/model/list_data.dart';
-import 'package:flutter_cubit/flutter_cubit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'detail_screen.dart';
 
 class MenuPage extends StatefulWidget {
@@ -62,6 +59,10 @@ class _MenuPageState extends State<MenuPage> {
                       padding: const EdgeInsets.only(right: 25, top: 10),
                       child: GestureDetector(
                         onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ShoppingCart()));
                         },
                         child: ValueListenableBuilder(
                             valueListenable: BadgeValue.numProductsNotifier,

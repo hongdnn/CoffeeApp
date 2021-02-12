@@ -1,20 +1,16 @@
 import 'package:badges/badges.dart';
 import 'package:coffee_app/common/badge_value.dart';
-import 'package:coffee_app/cubits/order_cubit.dart';
-import 'package:coffee_app/cubits/order_state.dart';
 import 'package:coffee_app/model/list_data.dart';
 import 'package:coffee_app/model/product.dart';
 import 'package:coffee_app/model/size.dart';
 import 'package:coffee_app/repositories/authenticate_repository.dart';
 import 'package:coffee_app/repositories/load_data_repository.dart';
-import 'package:coffee_app/repositories/order_repository.dart';
+import 'package:coffee_app/ui/shopping_cart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:coffee_app/model/coupon.dart';
-import 'package:flutter_cubit/flutter_cubit.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'detail_screen.dart';
 import 'login_screen.dart';
 import 'dart:io';
@@ -261,22 +257,30 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
               Spacer(),
               Padding(
                 padding: EdgeInsets.only(right: 25.0, bottom: 1),
-                child: ValueListenableBuilder(
-                  valueListenable: BadgeValue.numProductsNotifier,
-                  builder: (context, value, _) {
-                    return Badge(
-                      badgeContent: Text(
-                        '$value',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      showBadge: value > 0 ? true : false,
-                      alignment: Alignment.topRight,
-                      child: Image.asset(
-                        "assets/shopping_cart2.png",
-                        width: 40,
-                      ),
-                    );
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ShoppingCart()));
                   },
+                  child: ValueListenableBuilder(
+                    valueListenable: BadgeValue.numProductsNotifier,
+                    builder: (context, value, _) {
+                      return Badge(
+                        badgeContent: Text(
+                          '$value',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        showBadge: value > 0 ? true : false,
+                        alignment: Alignment.topRight,
+                        child: Image.asset(
+                          "assets/shopping_cart2.png",
+                          width: 40,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               )
             ],

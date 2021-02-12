@@ -15,10 +15,19 @@ class OrderCubit extends Cubit<OrderState> {
     emit(OrderProgress());
     if (orderId == -1) {
       var insertOrderResult = await orderRepo.insertOrder(quantity * unitPrice);
-      if (insertOrderResult != -1) {
-        insertDetail(insertOrderResult, productId, productName, size, quantity, unitPrice);
+      if (insertOrderResult == -2) {
+        await orderRepo.insertOrder(quantity * unitPrice).then((value) => {
+              if (value != -1)
+                {
+                  insertDetail(insertOrderResult, productId, productName, size,
+                      quantity, unitPrice)
+                }
+            });
+      } else if (insertOrderResult != -1) {
+        insertDetail(insertOrderResult, productId, productName, size, quantity,
+            unitPrice);
       }
-    }else{
+    } else {
       insertDetail(orderId, productId, productName, size, quantity, unitPrice);
     }
   }
@@ -29,6 +38,16 @@ class OrderCubit extends Cubit<OrderState> {
         orderId, productId, productName, size, quantity, unitPrice);
     if (result == 200) {
       emit(OrderSuccess(count: 1));
+    } else if (result == -2) {
+      await orderRepo
+          .insertOrderDetail(
+              orderId, productId, productName, size, quantity, unitPrice)
+          .then((value) => {
+                if (value == 200)
+                  {emit(OrderSuccess(count: 1))}
+                else
+                  {emit(OrderFailure())}
+              });
     } else {
       emit(OrderFailure());
     }

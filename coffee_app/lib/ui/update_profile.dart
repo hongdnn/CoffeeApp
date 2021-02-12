@@ -34,7 +34,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   void loadUser() async {
     await loadRepo
-        .loadUserInfo(currentUser.uid)
+        .getUser(currentUser.uid)
         .then((user) => userInfo = user);
     if (userInfo != null && userInfo.phone != null) {
       phoneController.text = userInfo.phone;

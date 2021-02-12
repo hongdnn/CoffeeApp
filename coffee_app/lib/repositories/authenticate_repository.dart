@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:coffee_app/model/response_result.dart';
 import 'package:coffee_app/utils/base_api.dart';
-import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_login_facebook/flutter_login_facebook.dart';

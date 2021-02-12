@@ -33,15 +33,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    super.initState();
     getUserInfo();
+    super.initState();
+    
   }
 
   void getUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     BaseApi.jwt = prefs.getString('ACCESS_TOKEN');
     if (currentUser != null) {
-      await loadDataRepo.loadUserInfo(currentUser.uid).then((user) => {
+      await loadDataRepo.getUser(currentUser.uid).then((user) => {
+        print(user),
             if (user != null)
               {
                 user.address != null
@@ -50,12 +52,11 @@ class _HomePageState extends State<HomePage> {
                 user.phone != null
                     ? prefs.setString('PHONE', user.phone)
                     : prefs.setString('PHONE', ' not yet'),
-                 orderRepo.getOrderId(currentUser.uid),
+                orderRepo.getOrderId(currentUser.uid),
+                print('address: ' + prefs.getString('ADDRESS')),
+                print('phone: ' + prefs.getString('PHONE'))
               }
           });
-
-      print('address: ' + prefs.getString('ADDRESS'));
-      print('phone: ' + prefs.getString('PHONE'));
     }
   }
 

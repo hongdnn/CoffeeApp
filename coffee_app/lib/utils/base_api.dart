@@ -15,8 +15,8 @@ class BaseApi {
     BaseOptions options = BaseOptions(
       baseUrl: BASE_URL,
       followRedirects: false,
-      receiveTimeout: 15000,
-      connectTimeout: 15000,
+      receiveTimeout: 60000,
+      connectTimeout: 60000,
     );
 
     //init the dio object

@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'refresh_token_repository.dart';
 
 class LoadDataRepository {
+  var baseAPI = BaseApi(true, true);
   Response response;
   Future<ListData> firstLoad() async {
     var baseAPI = BaseApi(true, false);
@@ -37,34 +38,41 @@ class LoadDataRepository {
     return null;
   }
 
-  Future<MyUser> loadUserInfo(String id) async {
-    var baseAPI = BaseApi(true, true);
+  Future<Response> loadUserInfo(String id) async {
     try {
+      print(BaseApi.jwt);
       response = await baseAPI.dio.get("/users/id/" + id);
-      // .catchError((e) => {
-      //       if (e.error == "Http status error [401]")
-      //         {
-      //           refreshToken().whenComplete(() => {loadUserInfo(id)})
-      //         }
-      //       else
-      //         {print("error get user")}
-      //     });
-      if (response.statusCode == 200) {
-        return MyUser.fromJson(json.decode(response.data));
-      }
+      return response;
     } on DioError catch (e) {
-      if (e.response.statusCode == 401) {
-        String description = e.response.headers.value('WWW-Authenticate');
+      return e.response;
+    }
+  }
+
+  Future<MyUser> getUser(String id) async {
+    MyUser myUser;
+    Response response = await loadUserInfo(id);
+    if (response.statusCode == 200) {
+      return MyUser.fromJson(json.decode(response.data));
+    } else {
+      myUser = null;
+      if (response.statusCode == 401) {
+        String description = response.headers.value('WWW-Authenticate');
         if (description != null) {
           print(description);
           if (description.contains('expired')) {
-            refreshToken().whenComplete(() => {loadUserInfo(id)});
+            String jwt = await refreshToken();
+            if (jwt != null) {
+              var result = await loadUserInfo(id);
+              if (result.statusCode == 200) {
+                myUser = MyUser.fromJson(json.decode(result.data));
+              }
+            }
           }
         }
       } else {
         print("error get user");
       }
     }
-    return null;
+    return myUser;
   }
 }

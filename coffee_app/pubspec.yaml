@@ -78,6 +78,7 @@ flutter:
     - assets/pin.png
     - assets/log_out.png
     - assets/left_arrow.png
+    - assets/telephone.png
     - assets/coffeeshop.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see

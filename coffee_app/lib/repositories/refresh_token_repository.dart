@@ -18,7 +18,7 @@ Future<String> refreshToken() async {
     await prefs.setString('ACCESS_TOKEN', responseResult.accessToken);
     await prefs.setString('REFRESH_TOKEN', responseResult.refreshToken);
     BaseApi.jwt = responseResult.accessToken;
-    print(BaseApi.jwt);
+    print('refresh: '+BaseApi.jwt);
     return responseResult.accessToken;
   } on DioError catch (e) {
     print(e.error);

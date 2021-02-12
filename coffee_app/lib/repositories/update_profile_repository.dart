@@ -8,46 +8,72 @@ class UpdateProfileRepository {
   Response response;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  Future<int> updateUser(
+  Future<Response> getResponseUpdateUser(
       String id, String image, String name, String phoneNumber) async {
     try {
       response = await baseApi.dio.put("/users/update/id/" + id,
           data: {'fullname': name, 'phone': phoneNumber, 'image': image});
+      return response;
     } on DioError catch (e) {
-      if (e.response.statusCode == 401) {
-        String description = e.response.headers.value('WWW-Authenticate');
-        if (description != null) {
-          print(description);
-          if (description.contains('expired')) {
-            refreshToken()
-                .whenComplete(() => {updateUser(id, image, name, phoneNumber)});
-          }
-        }
-      } else {
-        print("error:" + e.response.statusCode.toString());
-      }
+      return e.response;
     }
-    return response.statusCode;
   }
 
-  Future<int> updateAddress(String id, String address) async {
+  Future<int> updateUser(
+      String id, String image, String name, String phoneNumber) async {
+    Response res = await getResponseUpdateUser(id, image, name, phoneNumber);
+    if (res.statusCode == 200) {
+      return res.statusCode;
+    }
+    if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        print(description);
+        String jwt = await refreshToken();
+        if (jwt != null) {
+          var result =
+              await getResponseUpdateUser(id, image, name, phoneNumber);
+          if (result.statusCode == 200) {
+            return result.statusCode;
+          }
+        }
+      }
+    } else {
+      print("error:" + res.statusCode.toString());
+    }
+    return res.statusCode;
+  }
+
+  Future<Response> getResponseUpdateAddress(String id, String address) async {
     try {
       response = await baseApi.dio
           .put("/users/update/address/id/" + id, data: {'address': address});
-      print(response.statusCode);
+      return response;
     } on DioError catch (e) {
-      if (e.response.statusCode == 401) {
-        String description = e.response.headers.value('WWW-Authenticate');
-        if (description != null) {
-          print(description);
-          if (description.contains('expired')) {
-            refreshToken().whenComplete(() => {updateAddress(id, address)});
+      return e.response;
+    }
+  }
+
+  Future<int> updateAddress(String id, String address) async {
+    Response res = await getResponseUpdateAddress(id, address);
+    if (res.statusCode == 200) {
+      return res.statusCode;
+    } else if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        if (description.contains('expired')) {
+          String jwt = await refreshToken();
+          if (jwt != null) {
+            var result = await getResponseUpdateAddress(id, address);
+            if (result.statusCode == 200) {
+              return result.statusCode;
+            }
           }
         }
-      } else {
-        print("update address error");
       }
+    } else {
+      print("update address error");
     }
-    return response.statusCode;
+    return res.statusCode;
   }
 }
