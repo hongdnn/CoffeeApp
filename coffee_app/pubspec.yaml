@@ -79,7 +79,10 @@ flutter:
     - assets/log_out.png
     - assets/left_arrow.png
     - assets/telephone.png
+    - assets/cancel.png
+    - assets/coupon.png
     - assets/coffeeshop.jpg
+    - assets/emptycart.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

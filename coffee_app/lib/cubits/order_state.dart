@@ -14,6 +14,12 @@ class OrderInitial extends OrderState {}
 
 class OrderProgress extends OrderState {}
 
+class OrderConfirmProgress extends OrderState {}
+
+class OrderConfirmSuccess extends OrderState {}
+
+class OrderConfirmFailure extends OrderState {}
+
 class OrderSuccess extends OrderState {
    final int count;
 

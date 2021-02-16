@@ -37,12 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
               User user = state.user;
               if (user.displayName != null) {
                 dialog.hide();
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
                         builder: (context) => HomePage(
                               currentIndex: 0,
-                            )));
+                            )),
+                    (route) => false);
               } else {
                 Navigator.pushAndRemoveUntil(
                     context,

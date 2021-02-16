@@ -52,4 +52,21 @@ class OrderCubit extends Cubit<OrderState> {
       emit(OrderFailure());
     }
   }
+
+  void confirmOrder(String userId, int orderId) async {
+    emit(OrderConfirmProgress());
+    var result = await orderRepo.confirmCart(userId, orderId);
+    if (result == 200) {
+      emit(OrderConfirmSuccess());
+    } else if (result == 401) {
+      await orderRepo.confirmCart(userId, orderId).then((value) => {
+            if (value == 200)
+              {emit(OrderConfirmSuccess())}
+            else
+              {emit(OrderConfirmFailure())}
+          });
+    } else {
+      emit(OrderConfirmFailure());
+    }
+  }
 }

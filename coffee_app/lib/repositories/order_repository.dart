@@ -6,8 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:coffee_app/utils/base_api.dart';
 import 'refresh_token_repository.dart';
 import 'package:coffee_app/common/badge_value.dart';
+import 'package:coffee_app/model/order_detail.dart';
+import 'package:coffee_app/model/order_detail_response_result.dart';
 
 class OrderRepository {
+  final currentUser = FirebaseAuth.instance.currentUser;
   var baseApi = BaseApi(true, true);
   Response response;
   Future<int> insertOrderDetail(int orderId, String productId,
@@ -83,21 +86,54 @@ class OrderRepository {
   Future<Response> loadOrderId(String id) async {
     try {
       response = await baseApi.dio.get("/orders/userid/" + id);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        final orderResponse =
+            OrderResponse.getAmountfromJson(json.decode(response.data));
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
+        if (orderResponse.amountDetail > 0) {
+          BadgeValue.numProductsNotifier.value = orderResponse.amountDetail;
+        }
+      }
       return response;
     } on DioError catch (e) {
       return e.response;
     }
   }
 
-  Future<int> getOrderId(String id) async {
+  Future<void> getOrderId(String id) async {
     Response res = await loadOrderId(id);
+    if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        print(description);
+        if (description.contains('expired')) {
+          String jwt = await refreshToken();
+          if (jwt != null) {
+            await loadOrderId(id);
+          }
+        }
+      }
+    } else if (res.statusCode != 200 && res.statusCode != 400) {
+      print('error get order id');
+    }
+  }
+
+  Future<Response> loadOrderDetails(int orderId) async {
+    try {
+      response =
+          await baseApi.dio.get("/orderdetails/orderid/" + orderId.toString());
+      return response;
+    } on DioError catch (e) {
+      return e.response;
+    }
+  }
+
+  Future<List<OrderDetail>> getOrderDetails(int orderId) async {
+    Response res = await loadOrderDetails(orderId);
     if (res.statusCode == 200) {
-      final orderResponse =
-          OrderResponse.getAmountfromJson(json.decode(res.data));
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
-      BadgeValue.numProductsNotifier.value = orderResponse.amountDetail;
-      return orderResponse.orderId;
+      var detailsResponse = OrderDetailResponse.fromJson(json.decode(res.data));
+      return detailsResponse.orderDetails;
     } else if (res.statusCode == 401) {
       String description = res.headers.value('WWW-Authenticate');
       if (description != null) {
@@ -105,21 +141,150 @@ class OrderRepository {
         if (description.contains('expired')) {
           String jwt = await refreshToken();
           if (jwt != null) {
-            var result = await loadOrderId(id);
+            var result = await loadOrderDetails(orderId);
             if (result.statusCode == 200) {
-              final orderRes =
-                  OrderResponse.getAmountfromJson(json.decode(res.data));
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              prefs.setInt('EXISTED_ORDER', orderRes.orderId);
-              BadgeValue.numProductsNotifier.value = orderRes.amountDetail;
-              return orderRes.orderId;
+              var detailsResponse =
+                  OrderDetailResponse.fromJson(json.decode(result.data));
+              return detailsResponse.orderDetails;
             }
           }
         }
       }
     } else {
       print('error get order id');
-      return res.statusCode;
+      return null;
+    }
+    return null;
+  }
+
+  Future<int> confirmCart(String userId, int orderId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      response = await baseApi.dio.put("/orders/confirm", data: {
+        'userId': userId,
+        'orderId': orderId,
+      });
+      if (response.statusCode == 200) {
+        prefs.remove('EXISTED_ORDER');
+        BadgeValue.numProductsNotifier.value = 0;
+        return response.statusCode;
+      }
+    } catch (e) {
+      if (e is DioError) {
+        if (e.response.statusCode == 401) {
+          String description = response.headers.value('WWW-Authenticate');
+          if (description != null) {
+            print(description);
+            if (description.contains('expired')) {
+              String jwt = await refreshToken();
+              if (jwt != null) {
+                return e.response.statusCode;
+              }
+            }
+          }
+        }
+        return e.response.statusCode;
+      } else {
+        print('unknown error');
+      }
+    }
+    return -1;
+  }
+
+  Future<Response> updateOrderDetails(
+      int orderDetailId, int unitPrice, int orderId, int mode) async {
+    try {
+      response = await baseApi.dio.put("/orderdetails", data: {
+        'orderDetailId': orderDetailId,
+        'unitPrice': unitPrice,
+        'orderId': orderId,
+        'userId': currentUser.uid,
+        'mode': mode,
+      });
+      return response;
+    } on DioError catch (e) {
+      if (e.response.statusCode == 400) {
+        Map<String, dynamic> map = jsonDecode(e.response.data);
+        print(map['message']);
+      }
+      return e.response;
+    }
+  }
+
+  Future<int> updateOrderAmount(
+      int orderDetailId, int unitPrice, int orderId, int mode) async {
+    Response res =
+        await updateOrderDetails(orderDetailId, unitPrice, orderId, mode);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> map = jsonDecode(res.data);
+      return map['totalPrice'];
+    } else if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        print(description);
+        if (description.contains('expired')) {
+          String jwt = await refreshToken();
+          if (jwt != null) {
+            Response result = await updateOrderDetails(
+                orderDetailId, unitPrice, orderId, mode);
+            if (result.statusCode == 200) {
+              Map<String, dynamic> map = jsonDecode(res.data);
+              return map['totalPrice'];
+            }
+          }
+        }
+      }
+    } else if (res.statusCode != 400) {
+      print('error update amount');
+    }
+    return -1;
+  }
+
+  Future<Response> deleteOrderDetails(
+      int orderDetailId, int unitPrice, int orderId, int quantity) async {
+    try {
+      response = await baseApi.dio.delete("/orderdetails", data: {
+        'orderDetailId': orderDetailId,
+        'unitPrice': unitPrice,
+        'orderId': orderId,
+        'userId': currentUser.uid,
+        'quantity': quantity,
+      });
+      return response;
+    } on DioError catch (e) {
+      if (e.response.statusCode == 400) {
+        Map<String, dynamic> map = jsonDecode(e.response.data);
+        print(map['message']);
+      }
+      return e.response;
+    }
+  }
+
+  Future<int> deleteProduct(
+      int orderDetailId, int unitPrice, int orderId, int quantity) async {
+    Response res =
+        await deleteOrderDetails(orderDetailId, unitPrice, orderId, quantity);
+    if (res.statusCode == 200) {
+      Map<String, dynamic> map = jsonDecode(res.data);
+      return map['totalPrice'];
+    } else if (res.statusCode == 401) {
+      String description = res.headers.value('WWW-Authenticate');
+      if (description != null) {
+        print(description);
+        if (description.contains('expired')) {
+          String jwt = await refreshToken();
+          if (jwt != null) {
+            Response result = await deleteOrderDetails(
+                orderDetailId, unitPrice, orderId, quantity);
+            if (result.statusCode == 200) {
+              Map<String, dynamic> map = jsonDecode(res.data);
+              return map['totalPrice'];
+            }
+          }
+        }
+      }
+    } else if (res.statusCode != 400) {
+      print('error update amount');
     }
     return -1;
   }

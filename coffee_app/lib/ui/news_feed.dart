@@ -14,6 +14,7 @@ import 'package:coffee_app/model/coupon.dart';
 import 'detail_screen.dart';
 import 'login_screen.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NewsFeedPage extends StatefulWidget {
   @override
@@ -40,26 +41,8 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
   @override
   Widget build(BuildContext context) {
     var currentUser = FirebaseAuth.instance.currentUser;
-    return
-        // CubitListener<OrderCubit, OrderState>(
-        //     listener: (context, state) {
-        //       if (state is OrderSuccess) {
-        //         numOfProducts += state.count;
-        //         showBadge = true;
-        //       } else if (state is OrderFailure) {
-        //         Fluttertoast.showToast(
-        //             msg: "Rất tiếc. Đã có lỗi xảy ra",
-        //             toastLength: Toast.LENGTH_LONG,
-        //             gravity: ToastGravity.BOTTOM,
-        //             timeInSecForIosWeb: 1,
-        //             backgroundColor: Colors.red,
-        //             textColor: Colors.white,
-        //             fontSize: 20);
-        //       }
-        //     },
-        //     child:
-        Scaffold(
-            body: Stack(children: <Widget>[
+    return Scaffold(
+        body: Stack(children: <Widget>[
       SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,10 +242,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
                 padding: EdgeInsets.only(right: 25.0, bottom: 1),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ShoppingCart()));
+                    navigateToCart();
                   },
                   child: ValueListenableBuilder(
                     valueListenable: BadgeValue.numProductsNotifier,
@@ -422,5 +402,23 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
       return newName;
     }
     return name;
+  }
+
+  void navigateToCart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var phone = prefs.getString('PHONE');
+    var address = prefs.getString('ADDRESS');
+    var orderId = prefs.getInt('EXISTED_ORDER');
+    if (orderId == null) {
+      orderId = -1;
+    }
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ShoppingCart(
+                  phone: phone,
+                  address: address,
+                  orderId: orderId
+                )));
   }
 }

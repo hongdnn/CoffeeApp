@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:coffee_app/model/list_data.dart';
 import 'detail_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuPage extends StatefulWidget {
   @override
@@ -27,88 +28,85 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return
-        // CubitListener<OrderCubit, OrderState>(
-        //     listener: (context, state) {
-        //       if (state is OrderSuccess) {
-        //         a.value += state.count;
-        //         print( "number: "+a.value.toString());
-        //       } else if (state is OrderFailure) {
-        //         Fluttertoast.showToast(
-        //             msg: "Rất tiếc. Đã có lỗi xảy ra",
-        //             toastLength: Toast.LENGTH_LONG,
-        //             gravity: ToastGravity.BOTTOM,
-        //             timeInSecForIosWeb: 1,
-        //             backgroundColor: Colors.red,
-        //             textColor: Colors.white,
-        //             fontSize: 20);
-        //       }
-        //     },
-        //     child:
-        DefaultTabController(
-            length: 3,
-            child: Scaffold(
-                appBar: AppBar(
-                  backgroundColor: Colors.white,
-                  title: Text(
-                    "Các loại thức uống",
-                    style: TextStyle(fontSize: 27, color: Colors.black),
+    return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              title: Text(
+                "Các loại thức uống",
+                style: TextStyle(fontSize: 27, color: Colors.black),
+              ),
+              actions: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(right: 25, top: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      navigateToCart();
+                    },
+                    child: ValueListenableBuilder(
+                        valueListenable: BadgeValue.numProductsNotifier,
+                        builder: (context, value, _) {
+                          return Badge(
+                            badgeContent: Text(
+                              '$value',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                            showBadge: value > 0 ? true : false,
+                            alignment: Alignment.topRight,
+                            child: Image.asset(
+                              "assets/shopping_cart2.png",
+                              width: 40,
+                            ),
+                          );
+                        }),
                   ),
-                  actions: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(right: 25, top: 10),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ShoppingCart()));
-                        },
-                        child: ValueListenableBuilder(
-                            valueListenable: BadgeValue.numProductsNotifier,
-                            builder: (context, value, _) {
-                              return Badge(
-                                badgeContent: Text(
-                                  '$value',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                ),
-                                showBadge: value > 0 ? true : false,
-                                alignment: Alignment.topRight,
-                                child: Image.asset(
-                                  "assets/shopping_cart2.png",
-                                  width: 40,
-                                ),
-                              );
-                            }),
-                      ),
-                    )
-                  ],
-                  bottom: TabBar(
-                    labelStyle: TextStyle(fontSize: 21, color: Colors.black),
-                    labelColor: Colors.black,
-                    tabs: [
-                      Tab(text: "Cà phê"),
-                      Tab(text: "Đá xay"),
-                      Tab(text: "Trà trái cây"),
-                    ],
-                  ),
-                ),
-                body: FutureBuilder(
-                    future: listData,
-                    builder: (BuildContext context,
-                        AsyncSnapshot<ListData> snapshot) {
-                      if (snapshot.hasData) {
-                        return TabBarView(
-                          children: [
-                            PageWidget(snapshot.data, 1),
-                            PageWidget(snapshot.data, 2),
-                            PageWidget(snapshot.data, 3),
-                          ],
-                        );
-                      }
-                      return Container();
-                    })));
+                )
+              ],
+              bottom: TabBar(
+                labelStyle: TextStyle(fontSize: 21, color: Colors.black),
+                labelColor: Colors.black,
+                tabs: [
+                  Tab(text: "Cà phê"),
+                  Tab(text: "Đá xay"),
+                  Tab(text: "Trà trái cây"),
+                ],
+              ),
+            ),
+            body: FutureBuilder(
+                future: listData,
+                builder:
+                    (BuildContext context, AsyncSnapshot<ListData> snapshot) {
+                  if (snapshot.hasData) {
+                    return TabBarView(
+                      children: [
+                        PageWidget(snapshot.data, 1),
+                        PageWidget(snapshot.data, 2),
+                        PageWidget(snapshot.data, 3),
+                      ],
+                    );
+                  }
+                  return Container();
+                })));
+  }
+
+  void navigateToCart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var phone = prefs.getString('PHONE');
+    var address = prefs.getString('ADDRESS');
+    var orderId = prefs.getInt('EXISTED_ORDER');
+    if (orderId == null) {
+      orderId = -1;
+    }
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ShoppingCart(
+                  phone: phone,
+                  address: address,
+                  orderId: orderId,
+                )));
   }
 }
 

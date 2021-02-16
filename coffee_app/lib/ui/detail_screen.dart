@@ -7,6 +7,7 @@ import 'package:coffee_app/common/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_cubit/flutter_cubit.dart';
 import 'package:provider/provider.dart';
+import 'package:coffee_app/common/stateless_widget/cart_header.dart';
 
 class DetailScreen extends StatefulWidget {
   final Product product;
@@ -66,42 +67,16 @@ class _DetailScreenState extends State<DetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.only(top: 40, left: 20, bottom: 20),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Image.asset(
-                              "assets/left_arrow.png",
-                              width: 30,
-                            )),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 50),
-                            child: Text(
-                              widget.product.productName,
-                              style: TextStyle(
-                                  fontSize: 25, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  CartHeader(widget.product.productName),
                   Center(
                     child: Hero(
                         tag: widget.product.image,
                         child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          borderRadius: BorderRadius.circular(150),
                           child: Image.network(
                             widget.product.image,
-                            width: MediaQuery.of(context).size.width - 60,
                             height: MediaQuery.of(context).size.height / 3,
-                            fit: BoxFit.fill,
+                            fit: BoxFit.contain,
                           ),
                         )),
                   ),

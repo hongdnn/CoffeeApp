@@ -262,11 +262,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     await currentUser.reload();
     await repo.updateUser(currentUser.uid, newImage, nameController.text.trim(),
         phoneController.text.trim());
-    //Future.delayed(Duration(seconds: 1)).then((value) {
     setState(() {
       currentUser = FirebaseAuth.instance.currentUser;
     });
     progressDialog.hide();
-    // });
   }
 }

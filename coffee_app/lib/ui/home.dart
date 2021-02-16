@@ -35,7 +35,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     getUserInfo();
     super.initState();
-    
   }
 
   void getUserInfo() async {
@@ -43,7 +42,7 @@ class _HomePageState extends State<HomePage> {
     BaseApi.jwt = prefs.getString('ACCESS_TOKEN');
     if (currentUser != null) {
       await loadDataRepo.getUser(currentUser.uid).then((user) => {
-        print(user),
+            print(user),
             if (user != null)
               {
                 user.address != null
@@ -62,7 +61,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    BadgeValue.numProductsNotifier.dispose();
     super.dispose();
   }
 
