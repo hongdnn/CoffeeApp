@@ -1,12 +1,13 @@
 import 'dart:convert';
+import 'package:coffee_app/model/my_user.dart';
 import 'package:coffee_app/model/order_response_result.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:coffee_app/utils/base_api.dart';
 import 'refresh_token_repository.dart';
 import 'package:coffee_app/common/badge_value.dart';
-import 'package:coffee_app/model/order_detail.dart';
 import 'package:coffee_app/model/order_detail_response_result.dart';
 
 class OrderRepository {
@@ -46,16 +47,15 @@ class OrderRepository {
   }
 
   Future<int> insertOrder(int totalPrice) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var address = prefs.getString('ADDRESS');
-    var phone = prefs.getString('PHONE');
+    var box = Hive.box('hiveBox');
+    MyUser user = box.get('user');
     try {
       response = await baseApi.dio.post("/orders", data: {
-        'userId': currentUser.uid,
-        'address': address,
-        'receiverName': currentUser.displayName,
-        'phone': phone,
+        'userId': user.userId,
+        'address': user.address,
+        'receiverName': user.fullname,
+        'phone': user.phone,
         'totalPrice': totalPrice,
       });
       if (response.statusCode == 200) {
@@ -89,6 +89,9 @@ class OrderRepository {
       if (response.statusCode == 200 || response.statusCode == 400) {
         final orderResponse =
             OrderResponse.getAmountfromJson(json.decode(response.data));
+        if (orderResponse.orderId == null) {
+          orderResponse.orderId = -1;
+        }
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setInt('EXISTED_ORDER', orderResponse.orderId);
         if (orderResponse.amountDetail > 0) {
@@ -129,11 +132,11 @@ class OrderRepository {
     }
   }
 
-  Future<List<OrderDetail>> getOrderDetails(int orderId) async {
+  Future<OrderDetailResponse> getOrderDetails(int orderId) async {
     Response res = await loadOrderDetails(orderId);
     if (res.statusCode == 200) {
-      var detailsResponse = OrderDetailResponse.fromJson(json.decode(res.data));
-      return detailsResponse.orderDetails;
+      return OrderDetailResponse.fromJson(json.decode(res.data));
+      //return detailsResponse.orderDetails;
     } else if (res.statusCode == 401) {
       String description = res.headers.value('WWW-Authenticate');
       if (description != null) {
@@ -143,9 +146,9 @@ class OrderRepository {
           if (jwt != null) {
             var result = await loadOrderDetails(orderId);
             if (result.statusCode == 200) {
-              var detailsResponse =
-                  OrderDetailResponse.fromJson(json.decode(result.data));
-              return detailsResponse.orderDetails;
+              //var detailsResponse =
+                 return OrderDetailResponse.fromJson(json.decode(result.data));
+              //return detailsResponse.orderDetails;
             }
           }
         }
@@ -157,12 +160,14 @@ class OrderRepository {
     return null;
   }
 
-  Future<int> confirmCart(String userId, int orderId) async {
+  Future<int> confirmCart(String userId, int orderId, String couponId, int totalPrice) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
       response = await baseApi.dio.put("/orders/confirm", data: {
         'userId': userId,
         'orderId': orderId,
+        'couponId': couponId,
+        'totalPrice': totalPrice,
       });
       if (response.statusCode == 200) {
         prefs.remove('EXISTED_ORDER');

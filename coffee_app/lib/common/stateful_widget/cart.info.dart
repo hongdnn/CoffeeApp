@@ -145,7 +145,7 @@ class _CartInfoState extends State<CartInfo> {
       decoration: BoxDecoration(
           color: Colors.white,
           border: Border(
-              top: BorderSide(width: 0.8), bottom: BorderSide(width: 0.4))),
+              top: BorderSide(width: 0.8), bottom: BorderSide(width: 0.8))),
     );
   }
 

@@ -93,18 +93,11 @@ class _MenuPageState extends State<MenuPage> {
 
   void navigateToCart() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var phone = prefs.getString('PHONE');
-    var address = prefs.getString('ADDRESS');
     var orderId = prefs.getInt('EXISTED_ORDER');
-    if (orderId == null) {
-      orderId = -1;
-    }
     Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => ShoppingCart(
-                  phone: phone,
-                  address: address,
                   orderId: orderId,
                 )));
   }

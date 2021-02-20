@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cubit/flutter_cubit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'menu.dart';
 import 'news_feed.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void getUserInfo() async {
+    var box = Hive.box('hiveBox');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     BaseApi.jwt = prefs.getString('ACCESS_TOKEN');
     if (currentUser != null) {
@@ -45,16 +47,11 @@ class _HomePageState extends State<HomePage> {
             print(user),
             if (user != null)
               {
-                user.address != null
-                    ? prefs.setString('ADDRESS', user.address)
-                    : prefs.setString('ADDRESS', 'not yet'),
-                user.phone != null
-                    ? prefs.setString('PHONE', user.phone)
-                    : prefs.setString('PHONE', ' not yet'),
-                orderRepo.getOrderId(currentUser.uid),
-                print('address: ' + prefs.getString('ADDRESS')),
-                print('phone: ' + prefs.getString('PHONE'))
-              }
+                if (user.phone == null) {user.phone = 'not yet'},
+                if (user.address == null) {user.address = 'not yet'},
+                box.put('user', user)
+              },
+            orderRepo.getOrderId(user.userId),
           });
     }
   }

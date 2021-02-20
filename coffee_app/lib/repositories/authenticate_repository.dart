@@ -117,12 +117,6 @@ class AuthenticateRepository {
       identifier = user.email;
     }
     try {
-      // (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-      //     (HttpClient client) {
-      //   client.badCertificateCallback =
-      //       (X509Certificate cert, String host, int port) => true;
-      //   return client;
-      // };
       final Response response = await baseApi.dio.post('/users', data: {
         'userId': user.uid,
         'fullname': user.displayName,

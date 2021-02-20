@@ -2,11 +2,12 @@ import 'package:coffee_app/common/badge_value.dart';
 import 'package:coffee_app/common/progress_dialog.dart';
 import 'package:coffee_app/common/stateful_widget/cart.info.dart';
 import 'package:coffee_app/common/stateful_widget/user_order_info.dart';
+import 'package:coffee_app/common/stateless_widget/coupon_detail.dart';
 import 'package:coffee_app/repositories/order_repository.dart';
+import 'package:coffee_app/ui/coupon_screen.dart';
 import 'package:coffee_app/ui/home.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:coffee_app/model/order_detail.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:coffee_app/cubits/order_cubit.dart';
@@ -14,13 +15,15 @@ import 'package:flutter_cubit/flutter_cubit.dart';
 import 'package:coffee_app/cubits/order_state.dart';
 import 'package:coffee_app/common/stateless_widget/cart_header.dart';
 import 'package:coffee_app/common/stateless_widget/cart_no_item.dart';
+import 'package:hive/hive.dart';
+import 'package:coffee_app/model/my_user.dart';
+import 'package:coffee_app/model/coupon.dart';
+import 'package:coffee_app/model/order_detail_response_result.dart';
 
 class ShoppingCart extends StatefulWidget {
-  var phone;
-  var address;
   var orderId;
 
-  ShoppingCart({this.phone, this.address, this.orderId});
+  ShoppingCart({this.orderId});
 
   @override
   _ShoppingCartState createState() => _ShoppingCartState();
@@ -29,20 +32,33 @@ class ShoppingCart extends StatefulWidget {
 class _ShoppingCartState extends State<ShoppingCart> {
   final currentUser = FirebaseAuth.instance.currentUser;
   final orderRepo = OrderRepository();
-  Future<List<OrderDetail>> listDetails;
+  Future<OrderDetailResponse> orderDetailResponse;
   int totalPrice = 0;
+  int salePrice = 0;
+  int orderPrice = 0;
+  MyUser user;
+  Coupon coupon;
 
   @override
   void initState() {
     super.initState();
-    listDetails = orderRepo.getOrderDetails(widget.orderId);
+    var box = Hive.box('hiveBox');
+    user = box.get('user');
+    coupon = box.get('coupon');
+    orderDetailResponse = orderRepo.getOrderDetails(widget.orderId);
   }
 
-  void calculateTotal(List<OrderDetail> list) {
-    totalPrice = 0;
-    for (var detail in list) {
-      totalPrice += detail.quantity * detail.unitPrice;
+  int getSalePrice(int price) {
+    if (coupon != null) {
+      if (coupon.sale.contains('%')) {
+        int sale = int.parse(coupon.sale.split('%')[0]);
+        double res = price * sale / 100;
+        return res.round();
+      } else {
+        return int.parse(coupon.sale);
+      }
     }
+    return 0;
   }
 
   void setNewTotal(int newTotal) {
@@ -53,7 +69,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
   void setNewTotalAndRefresh(int newTotal) {
     setState(() {
-      listDetails = orderRepo.getOrderDetails(widget.orderId);
+      orderDetailResponse = orderRepo.getOrderDetails(widget.orderId);
       totalPrice = newTotal;
     });
   }
@@ -63,12 +79,14 @@ class _ShoppingCartState extends State<ShoppingCart> {
     setUpProgressDialog(context);
     return CubitListener<OrderCubit, OrderState>(
       listener: (context, state) {
-        if (state is OrderConfirmSuccess) {
+        if (state is OrderConfirmProgress) {
           dialog.show();
         }
         if (state is OrderConfirmSuccess) {
           dialog.hide();
           BadgeValue.numProductsNotifier.value = 0;
+          var box = Hive.box('hiveBox');
+          box.delete('coupon');
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
@@ -89,9 +107,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
         }
       },
       child: FutureBuilder(
-          future: listDetails,
+          future: orderDetailResponse,
           builder: (BuildContext context,
-              AsyncSnapshot<List<OrderDetail>> snapshot) {
+              AsyncSnapshot<OrderDetailResponse> snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return Scaffold(
                 body: Container(
@@ -101,7 +119,11 @@ class _ShoppingCartState extends State<ShoppingCart> {
               );
             } else {
               if (snapshot.hasData) {
-                calculateTotal(snapshot.data);
+                if (totalPrice == 0) {
+                  totalPrice = snapshot.data.totalPrice;
+                }
+                salePrice = getSalePrice(totalPrice);
+                orderPrice = totalPrice - salePrice;
                 return Scaffold(
                     body: Stack(children: <Widget>[
                   SingleChildScrollView(
@@ -118,9 +140,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                           ),
                         ),
                         UserOrderInfo(
-                            userName: currentUser.displayName,
-                            phone: widget.phone,
-                            address: widget.address),
+                            userName: user.fullname,
+                            phone: user.phone,
+                            address: user.address),
                         Padding(
                           padding:
                               EdgeInsets.only(top: 20, left: 20, bottom: 10),
@@ -133,12 +155,66 @@ class _ShoppingCartState extends State<ShoppingCart> {
                         Container(
                           child: Column(
                             children: [
-                              for (var detail in snapshot.data)
+                              for (var detail in snapshot.data.orderDetails)
                                 CartInfo(
                                     detail, setNewTotal, setNewTotalAndRefresh),
                             ],
                           ),
                         ),
+                        Padding(
+                          padding:
+                              EdgeInsets.only(top: 20, left: 20, bottom: 10),
+                          child: Text(
+                            'Tổng cộng',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          child: ListTile(
+                            leading: Text(
+                              'Tổng cộng',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            trailing: Text(
+                              '${totalPrice.toString()}đ',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                  top: BorderSide(width: 0.8),
+                                  bottom: BorderSide(width: 0.8))),
+                        ),
+                        salePrice != 0
+                            ? Container(
+                                child: ListTile(
+                                  leading: Text(
+                                    'Khuyến mãi',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Color.fromRGBO(112, 170, 48, 1.0),
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    '-${salePrice.toString()}đ',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Color.fromRGBO(112, 170, 48, 1.0),
+                                    ),
+                                  ),
+                                ),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border(
+                                        top: BorderSide(width: 0.8),
+                                        bottom: BorderSide(width: 0.8))),
+                              )
+                            : Container(
+                                width: 0,
+                                height: 0,
+                              ),
                         Container(
                           height: 200,
                         )
@@ -168,7 +244,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                             padding:
                                                 const EdgeInsets.only(top: 8.0),
                                             child: Text(
-                                              '$totalPriceđ',
+                                              '$orderPriceđ',
                                               style: TextStyle(fontSize: 25),
                                             ),
                                           ),
@@ -181,26 +257,71 @@ class _ShoppingCartState extends State<ShoppingCart> {
                                     )),
                                 Expanded(
                                   flex: 1,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        border: Border(
-                                            left: BorderSide(width: 1.0))),
-                                    margin:
-                                        EdgeInsets.only(top: 5.0, bottom: 5.0),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/coupon.png',
-                                          height: 45,
-                                        ),
-                                        Text(
-                                          'Mã ưu đãi',
-                                          style: TextStyle(fontSize: 20),
-                                        ),
-                                      ],
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (coupon != null) {
+                                        showModalBottomSheet(
+                                            context: context,
+                                            routeSettings: RouteSettings(
+                                                arguments: totalPrice),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                      top: Radius.circular(
+                                                          25.0)),
+                                            ),
+                                            isScrollControlled: true,
+                                            builder: (BuildContext context) {
+                                              return CouponDetail(
+                                                coupon,
+                                                true,
+                                              );
+                                            });
+                                      } else {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    CouponScreen(),
+                                                settings: RouteSettings(
+                                                    arguments: totalPrice)));
+                                      }
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border(
+                                              left: BorderSide(width: 1.0))),
+                                      margin: EdgeInsets.only(
+                                          top: 5.0, bottom: 5.0),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          coupon != null
+                                              ? Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 8.0),
+                                                  child: Text(coupon.couponId,
+                                                      style: TextStyle(
+                                                          fontSize: 25,
+                                                          color: Color.fromRGBO(
+                                                              253,
+                                                              78,
+                                                              38,
+                                                              1.0))),
+                                                )
+                                              : Image.asset(
+                                                  'assets/coupon.png',
+                                                  height: 45,
+                                                ),
+                                          Text(
+                                            'Mã ưu đãi',
+                                            style: TextStyle(fontSize: 20),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -209,7 +330,10 @@ class _ShoppingCartState extends State<ShoppingCart> {
                             GestureDetector(
                               onTap: () {
                                 context.read<OrderCubit>().confirmOrder(
-                                    currentUser.uid, widget.orderId);
+                                    currentUser.uid,
+                                    widget.orderId,
+                                    coupon != null ? coupon.couponId : null,
+                                    orderPrice);
                               },
                               child: Container(
                                 height: 60,

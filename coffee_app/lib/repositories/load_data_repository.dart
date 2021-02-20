@@ -4,10 +4,12 @@ import 'package:coffee_app/model/coupon.dart';
 import 'package:coffee_app/model/list_data.dart';
 import 'package:coffee_app/utils/base_api.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
 import 'refresh_token_repository.dart';
 
 class LoadDataRepository {
+  final currentUser = FirebaseAuth.instance.currentUser;
   var baseAPI = BaseApi(true, true);
   Response response;
   Future<ListData> firstLoad() async {
@@ -24,9 +26,8 @@ class LoadDataRepository {
   }
 
   Future<List<Coupon>> getAllCoupons() async {
-    var baseAPI = BaseApi(true, false);
     try {
-      response = await baseAPI.dio.get("/coupons");
+      response = await baseAPI.dio.get("/coupons/userid/" + currentUser.uid);
       if (response.statusCode == 200) {
         return (json.decode(response.data) as List)
             .map((i) => Coupon.fromJson(i))
